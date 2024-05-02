@@ -60,9 +60,16 @@ enum class Light : int {
     SpotLight = 2
 };
 
+enum class Fog: int{
+    NoFog = 0,
+    Linear = 1,
+    Exponential = 2,
+    ExponentialSquare = 3
+};
+
 Shading shadeStyle = Shading::FlatShading;
 Light lightStyle = Light::NoLight;
-
+Fog fogStyle = Fog::NoFog;
 
 
 const int floor_NumVertices = 6; //(1 face)*(2 triangles/face)*(3 vertices/triangle)
@@ -144,7 +151,11 @@ float quad_att = 0.001f;
 // before sending it to the shader(s).
 
 
-
+//fog related
+color4 fogColor(0.7, 0.7, 0.7, 0.5);
+float fogStart=0.0;
+float fogEnd=18.0;
+float fogDensity=0.09;
 
 
 
@@ -154,6 +165,22 @@ mat4 shadowProjectionMat(
         vec4(0.0,3.0,12.0,0.0),
         vec4(0.0,-1.0,0.0,12.0)
         ); //ref:http://www.it.hiof.no/~borres/j3d/explain/shadow/p-shadow.html
+
+void setup_fog_effect(){
+    glUniform1i(glGetUniformLocation(program_light, "fogStyle"),
+                static_cast<int>(fogStyle) );
+
+    glUniform1f(glGetUniformLocation(program_light, "fogStart"),
+                fogStart);
+    glUniform1f(glGetUniformLocation(program_light, "fogEnd"),
+                fogEnd);
+    glUniform1f(glGetUniformLocation(program_light, "fogDensity"),
+                fogDensity);
+    glUniform4fv( glGetUniformLocation(program_light, "fogColor"),
+                  1, fogColor );
+}
+
+
 void setup_sphere_shading(mat4 mv){
     color4 sphere_ambient_color(0.2f,0.2f,0.2f,1.0f);
     color4 sphere_diffuse_color(1.0f,0.84f,0.0f,1.0f);
@@ -166,6 +193,7 @@ void setup_sphere_shading(mat4 mv){
     color4 diffuse_product = positional_light_diffuse * sphere_diffuse_color;
     color4 specular_product = positional_light_specular * sphere_specular_color;
     float  material_shininess = 125.0f;
+    //setup_fog_effect();
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalAmbientProduct"),
                   1, directional_ambient_product );
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalDiffuseProduct"),
@@ -222,6 +250,7 @@ void setup_sphere_shading(mat4 mv, int manualLightStyle){
     color4 diffuse_product = positional_light_diffuse * sphere_diffuse_color;
     color4 specular_product = positional_light_specular * sphere_specular_color;
     float  material_shininess = 125.0f;
+    //setup_fog_effect();
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalAmbientProduct"),
                   1, directional_ambient_product );
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalDiffuseProduct"),
@@ -281,6 +310,7 @@ void setup_floor_shading(mat4 mv, int lightFlag){
     color4 diffuse_product = positional_light_diffuse * floor_diffuse_color;
     color4 specular_product = positional_light_specular * floor_specular_color;
     float  material_shininess = 125.0f;
+    //setup_fog_effect();
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalAmbientProduct"),
                   1, directional_ambient_product );
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalDiffuseProduct"),
@@ -328,6 +358,7 @@ void setup_floor_shading(mat4 mv, int lightFlag){
 
 void setup_shadow_shading(mat4 mv){
     color4 shadow_default_color( 0.25f,0.25f,0.25f,0.65f);
+    //setup_fog_effect();
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalAmbientProduct"),
                   1, default_null );
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalDiffuseProduct"),
@@ -370,6 +401,7 @@ void setup_shadow_shading(mat4 mv){
 }
 
 void setup_axis_shading(mat4 mv,color4 color){
+    //setup_fog_effect();
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalAmbientProduct"),
                   1, default_null );
     glUniform4fv( glGetUniformLocation(program_light, "DirectionalDiffuseProduct"),
@@ -410,6 +442,8 @@ void setup_axis_shading(mat4 mv,color4 color){
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 0 );
 }
+
+
 //-------------------------------
 // generate 2 triangles: 6 vertices and 6 colors
 void floor() {
@@ -622,7 +656,7 @@ void display(void) {
 
     model_view = glGetUniformLocation(program_light, "model_view");
     projection = glGetUniformLocation(program_light, "projection");
-
+    setup_fog_effect();
 /*---  Set up and pass on Projection matrix to the shader ---*/
     mat4 p = Perspective(fovy, aspect, zNear, zFar);
     glUniformMatrix4fv(projection, 1, GL_TRUE, p); // GL_TRUE: matrix is row-major
@@ -973,6 +1007,28 @@ void myShadingMenu(int id) {
     }
     glutPostRedisplay();
 };
+void myFogMenu(int id) {
+    switch (id) {
+        case (1) : {
+            fogStyle=Fog::NoFog;
+            break;
+        }
+        case (2) : {
+            fogStyle=Fog::Linear;
+            break;
+        }
+        case (3) : {
+            fogStyle=Fog::Exponential;
+            break;
+        }
+        case (4) : {
+            fogStyle=Fog::ExponentialSquare;
+            break;
+        }
+
+    }
+    glutPostRedisplay();
+};
 void myMenu(int id){
     switch (id) {
         case (1) :
@@ -1014,6 +1070,13 @@ void initMenu(){
     glutAddMenuEntry(" Flat Shading ", 1);
     glutAddMenuEntry(" Smooth Shading ", 2);
 
+    int fogMenuID = glutCreateMenu(myFogMenu);
+    glutSetMenuFont(fogMenuID,GLUT_BITMAP_HELVETICA_18);
+    glutAddMenuEntry(" No Fog ", 1);
+    glutAddMenuEntry(" Linear ", 2);
+    glutAddMenuEntry(" Exponential ", 3);
+    glutAddMenuEntry(" Exponential Square ", 4);
+
     int menuID = glutCreateMenu(myMenu);
     glutSetMenuFont(menuID,GLUT_BITMAP_HELVETICA_18);
     glutAddMenuEntry(" Default View Point ",1);
@@ -1023,6 +1086,7 @@ void initMenu(){
     glutAddSubMenu(" Enable Lighting ", lightMenuID);
     glutAddSubMenu(" Light Source ", lightStyleMenuID);
     glutAddSubMenu(" Shading ", shadingMenuID);
+    glutAddSubMenu(" Fog Options ", fogMenuID);
     glutAttachMenu(GLUT_LEFT_BUTTON);
 }
 int main(int argc, char **argv) {

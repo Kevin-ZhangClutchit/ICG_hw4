@@ -12,7 +12,7 @@ Vertex shader:
 in  vec4 vPosition;
 in  vec3 vNormal;
 out vec4 color;
-
+out vec4 position;
 uniform vec4 DirectionalAmbientProduct, DirectionalDiffuseProduct, DirectionalSpecularProduct;
 uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform mat4 model_view;
@@ -37,7 +37,7 @@ uniform int light_flag;
 void main()
 {
     float cutoffAngle=20.0*3.1415926/180.0;
-
+    position = vPosition;
     if (light_flag==0){
         gl_Position = projection * model_view * vPosition;
         color = default_no_light_color;
