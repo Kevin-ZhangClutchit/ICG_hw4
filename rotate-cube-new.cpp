@@ -70,12 +70,18 @@ enum class TextureGround: int{
     No = 0,
     Yes = 1
 };
+enum class TextureSphere: int{
+    No = 0,
+    Texture1D = 1,
+    Texture2D = 2
+};
 
 Shading shadeStyle = Shading::FlatShading;
 Light lightStyle = Light::NoLight;
 Fog fogStyle = Fog::NoFog;
 bool isShadowBlending = true;
 TextureGround  groundTextureStyle = TextureGround::No;
+TextureSphere sphereTextureStyle = TextureSphere::No;
 static GLuint texName;
 
 const int floor_NumVertices = 6; //(1 face)*(2 triangles/face)*(3 vertices/triangle)
@@ -568,6 +574,15 @@ void init() {
                  0, GL_RGBA, GL_UNSIGNED_BYTE, Image);
 
 
+    glActiveTexture( GL_TEXTURE1 );
+    glBindTexture(GL_TEXTURE_1D, texName); // Bind the texture xto this texture unit
+
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, stripeImageWidth,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, stripeImage);
 
 
     floor();
@@ -1138,6 +1153,28 @@ void myTextureGroundMenu(int id){
     }
     glutPostRedisplay();
 }
+
+void mySphereTextureMenu(int id){
+    switch (id) {
+        case (1) : {
+            sphereTextureStyle = TextureSphere::No;
+            break;
+        }
+        case (2) : {
+            sphereTextureStyle = TextureSphere::Texture1D;
+            isSolid=true;
+            isShadow=false;
+            break;
+        }
+        case (3) : {
+            sphereTextureStyle = TextureSphere::Texture2D;
+            isSolid=true;
+            isShadow=false;
+            break;
+        }
+    }
+    glutPostRedisplay();
+}
 void myMenu(int id){
     switch (id) {
         case (1) :
@@ -1198,6 +1235,13 @@ void initMenu(){
     glutAddMenuEntry(" No ", 1);
     glutAddMenuEntry(" Yes ", 2);
 
+    int sphereTextureMenuID = glutCreateMenu(mySphereTextureMenu);
+    glutSetMenuFont(sphereTextureMenuID,GLUT_BITMAP_HELVETICA_18);
+    glutAddMenuEntry(" No ", 1);
+    glutAddMenuEntry(" Yes - Contour Lines ", 2);
+    glutAddMenuEntry(" Yes - Checkerboard ", 3);
+
+
     int menuID = glutCreateMenu(myMenu);
     glutSetMenuFont(menuID,GLUT_BITMAP_HELVETICA_18);
     glutAddMenuEntry(" Default View Point ",1);
@@ -1210,6 +1254,7 @@ void initMenu(){
     glutAddSubMenu(" Fog Options ", fogMenuID);
     glutAddSubMenu(" Blending Shadow ", shadowBlendingMenuID);
     glutAddSubMenu(" Texture Mapped Ground ", groundTextureMenuID);
+    glutAddSubMenu(" Texture Mapped Sphere ", sphereTextureMenuID);
     glutAttachMenu(GLUT_LEFT_BUTTON);
 }
 int main(int argc, char **argv) {
