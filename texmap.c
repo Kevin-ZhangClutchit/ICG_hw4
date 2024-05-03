@@ -1,6 +1,5 @@
 /* global definitions for constants and global image arrays */
-
-#include <GL/glew.h>
+#include <GL/gl.h>
 
 #define ImageWidth  64
 #define ImageHeight 64

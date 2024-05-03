@@ -368,6 +368,7 @@ void setup_floor_shading(mat4 mv, int lightFlag){
                 lightFlag );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
                 static_cast<int>(groundTextureStyle) );
+    glUniform1i(glGetUniformLocation(program_light, "texture_2D"), 0);
 }
 
 void setup_shadow_shading(mat4 mv){
@@ -485,6 +486,7 @@ void floor() {
     floor_texCoord[3] = vec2(0.0, 0.0);
     floor_texCoord[4] = vec2(1.25, 1.5);
     floor_texCoord[5] = vec2(1.25, 0.0);
+
 }
 
 
@@ -551,6 +553,7 @@ void init() {
 
 
     image_set_up();
+
     /*--- Create and Initialize a texture object ---*/
     glGenTextures(1, &texName);      // Generate texture obj name(s)
 
@@ -571,7 +574,7 @@ void init() {
     // Create and initialize a vertex buffer object for floor, to be used in display()
     glGenBuffers(1, &floor_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, floor_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(floor_points) + sizeof(floor_normals)+sizeof(floor_texCoord),
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floor_points) + sizeof(floor_normals) + sizeof(floor_texCoord),
                  NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(floor_points), floor_points);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(floor_points), sizeof(floor_normals),
@@ -681,13 +684,12 @@ void drawObjwithShaderAndTexture(GLuint buffer, int num_vertices, GLuint shader)
     glEnableVertexAttribArray( vNormal );
     glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0,
                            BUFFER_OFFSET(sizeof(point4) * num_vertices) );
-    glDrawArrays(GL_TRIANGLES, 0, num_vertices);
-
     GLuint vTexCoord = glGetAttribLocation( shader, "vTexCoord" );
     glEnableVertexAttribArray( vTexCoord );
     glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0,
                            BUFFER_OFFSET((sizeof(point4) * num_vertices) + (sizeof(vec3) * num_vertices)) );
-
+    
+    glDrawArrays(GL_TRIANGLES, 0, num_vertices);
     /*--- Disable each vertex attribute array being enabled ---*/
     glDisableVertexAttribArray(vPosition);
     glDisableVertexAttribArray(vNormal);
@@ -727,7 +729,7 @@ void display(void) {
     model_view = glGetUniformLocation(program_light, "model_view");
     projection = glGetUniformLocation(program_light, "projection");
     setup_fog_effect();
-    setup_texture_parameters();
+
 /*---  Set up and pass on Projection matrix to the shader ---*/
     mat4 p = Perspective(fovy, aspect, zNear, zFar);
     glUniformMatrix4fv(projection, 1, GL_TRUE, p); // GL_TRUE: matrix is row-major
