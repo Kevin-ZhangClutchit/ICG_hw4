@@ -75,13 +75,22 @@ enum class TextureSphere: int{
     Texture1D = 1,
     Texture2D = 2
 };
-
+enum class SphereTextureDirection: int{
+    Vertical = 0,
+    Slanted = 1
+};
+enum class SphereTextureFrame: int{
+    Object = 0,
+    Eye = 1
+};
 Shading shadeStyle = Shading::FlatShading;
 Light lightStyle = Light::NoLight;
 Fog fogStyle = Fog::NoFog;
 bool isShadowBlending = true;
 TextureGround  groundTextureStyle = TextureGround::No;
 TextureSphere sphereTextureStyle = TextureSphere::No;
+SphereTextureDirection sphereTextureDirectionStyle = SphereTextureDirection::Vertical;
+SphereTextureFrame sphereTextureFrameStyle = SphereTextureFrame::Object;
 static GLuint texName;
 
 const int floor_NumVertices = 6; //(1 face)*(2 triangles/face)*(3 vertices/triangle)
@@ -973,7 +982,20 @@ void keyboard(unsigned char key, int x, int y) {
             else glutIdleFunc(NULL);
             break;
 
+        case 'v': case 'V':
+            sphereTextureDirectionStyle=SphereTextureDirection::Vertical;
+            break;
 
+        case 's': case 'S':
+            sphereTextureDirectionStyle=SphereTextureDirection::Slanted;
+            break;
+
+        case 'o': case 'O':
+            sphereTextureFrameStyle=SphereTextureFrame::Object;
+            break;
+        case 'e': case 'E':
+            sphereTextureFrameStyle=SphereTextureFrame::Eye;
+            break;
 
         case ' ':  // reset to initial viewer/eye position
             eye = init_eye;
