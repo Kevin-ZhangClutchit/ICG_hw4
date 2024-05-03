@@ -70,7 +70,7 @@ enum class Fog: int{
 Shading shadeStyle = Shading::FlatShading;
 Light lightStyle = Light::NoLight;
 Fog fogStyle = Fog::NoFog;
-
+bool isShadowBlending = true;
 
 const int floor_NumVertices = 6; //(1 face)*(2 triangles/face)*(3 vertices/triangle)
 point4 floor_points[floor_NumVertices]; // positions for all vertices
@@ -711,8 +711,13 @@ void display(void) {
         setup_floor_shading(mv,static_cast<int>(lightStyle));
         drawObjwithShader(floor_buffer, floor_NumVertices,program_light);  // draw the floor
 
+        if(isShadowBlending){
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }else{
+            glDepthMask(GL_TRUE);
+        }
 
-        glDepthMask(GL_TRUE);
 
         //shadow
         mv = LookAt(eye, at, up);
@@ -728,7 +733,10 @@ void display(void) {
         }
         drawObjwithShader(shadow_buffer, sphere_NumVertices,program_light);
 
-
+        if(isShadowBlending){
+            glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
+        }
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         mv = LookAt(eye, at, up);
         glUniformMatrix4fv(model_view, 1, GL_TRUE, LookAt(eye, at, up)); // GL_TRUE: matrix is row-major
@@ -1028,7 +1036,21 @@ void myFogMenu(int id) {
 
     }
     glutPostRedisplay();
-};
+}
+
+void myBlendingShadowMenu(int id){
+    switch (id) {
+        case (1) : {
+            isShadowBlending = false;
+            break;
+        }
+        case (2) : {
+            isShadowBlending = true;
+            break;
+        }
+    }
+    glutPostRedisplay();
+}
 void myMenu(int id){
     switch (id) {
         case (1) :
@@ -1077,6 +1099,10 @@ void initMenu(){
     glutAddMenuEntry(" Exponential ", 3);
     glutAddMenuEntry(" Exponential Square ", 4);
 
+    int shadowBlendingMenuID = glutCreateMenu(myBlendingShadowMenu);
+    glutSetMenuFont(shadowBlendingMenuID,GLUT_BITMAP_HELVETICA_18);
+    glutAddMenuEntry(" No ", 1);
+    glutAddMenuEntry(" Yes ", 2);
     int menuID = glutCreateMenu(myMenu);
     glutSetMenuFont(menuID,GLUT_BITMAP_HELVETICA_18);
     glutAddMenuEntry(" Default View Point ",1);
@@ -1087,6 +1113,7 @@ void initMenu(){
     glutAddSubMenu(" Light Source ", lightStyleMenuID);
     glutAddSubMenu(" Shading ", shadingMenuID);
     glutAddSubMenu(" Fog Options ", fogMenuID);
+    glutAddSubMenu(" Blending Shadow ", shadowBlendingMenuID);
     glutAttachMenu(GLUT_LEFT_BUTTON);
 }
 int main(int argc, char **argv) {
