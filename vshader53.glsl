@@ -11,8 +11,10 @@ Vertex shader:
 
 in  vec4 vPosition;
 in  vec3 vNormal;
+in  vec2 vTexCoord;
 out vec4 color;
 out vec4 position;
+out vec2 texCoord;
 uniform vec4 DirectionalAmbientProduct, DirectionalDiffuseProduct, DirectionalSpecularProduct;
 uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform mat4 model_view;
@@ -24,7 +26,7 @@ uniform float Shininess;
 uniform float ConstAtt;  // Constant Attenuation
 uniform float LinearAtt; // Linear Attenuation
 uniform float QuadAtt;   // Quadratic Attenuation
-
+uniform int groundTextureFlag;
 uniform vec4 material_ambient;
 uniform	vec4 material_diffuse;
 uniform	vec4 material_specular;
@@ -38,6 +40,10 @@ void main()
 {
     float cutoffAngle=20.0*3.1415926/180.0;
     position = vPosition;
+
+    if (groundTextureFlag==1){
+         texCoord = vTexCoord;
+    }
     if (light_flag==0){
         gl_Position = projection * model_view * vPosition;
         color = default_no_light_color;

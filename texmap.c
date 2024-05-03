@@ -1,5 +1,7 @@
 /* global definitions for constants and global image arrays */
 
+#include <GL/glew.h>
+
 #define ImageWidth  64
 #define ImageHeight 64
 GLubyte Image[ImageHeight][ImageWidth][4];

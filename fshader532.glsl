@@ -21,14 +21,16 @@ uniform sampler2D texture_2D;
 void main() 
 {
     float f;
-    vec4 textureColor;
+    vec4 currColor, texColor;
     float op = color.w;
     float z = length(model_view * position);
-    fColor = color;
-
+    currColor = color;
     if (groundTextureFlag==1){
-        textureColor = texture(texture_2D, texCoord);
-        fColor *= textureColor;
+         texColor = texture(texture_2D, texCoord);
+    }
+
+    if (groundTextureFlag>0){
+        currColor *= texColor;
     }
 
 
@@ -46,7 +48,7 @@ void main()
         f = exp(-fogDensity*z*fogDensity*z);
         f = clamp(f, 0, 1);
     }
-    fColor = mix(fogColor, fColor, f);
+    fColor = mix(fogColor, currColor, f);
     fColor.w = op;
 } 
 

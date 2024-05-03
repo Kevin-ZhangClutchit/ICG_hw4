@@ -7,7 +7,7 @@
 #include <tuple>
 #include <sstream>
 #include <cmath>
-
+#include "texmap.c"
 using TRIANGLE = std::vector<std::tuple<float, float, float >>;
 
 
@@ -66,16 +66,23 @@ enum class Fog: int{
     Exponential = 2,
     ExponentialSquare = 3
 };
+enum class TextureGround: int{
+    No = 0,
+    Yes = 1
+};
 
 Shading shadeStyle = Shading::FlatShading;
 Light lightStyle = Light::NoLight;
 Fog fogStyle = Fog::NoFog;
 bool isShadowBlending = true;
+TextureGround  groundTextureStyle = TextureGround::No;
+static GLuint texName;
 
 const int floor_NumVertices = 6; //(1 face)*(2 triangles/face)*(3 vertices/triangle)
 point4 floor_points[floor_NumVertices]; // positions for all vertices
 point4 default_null(0.0,0.0,0.0,0.0);
 point3 floor_normals[floor_NumVertices];
+vec2 floor_texCoord[floor_NumVertices];
 int sphere_NumVertices;
 
 
@@ -179,7 +186,9 @@ void setup_fog_effect(){
     glUniform4fv( glGetUniformLocation(program_light, "fogColor"),
                   1, fogColor );
 }
-
+void setup_texture_parameters(){
+    glUniform1i(glGetUniformLocation(program_light, "texture_2D"), 0);
+}
 
 void setup_sphere_shading(mat4 mv){
     color4 sphere_ambient_color(0.2f,0.2f,0.2f,1.0f);
@@ -237,6 +246,9 @@ void setup_sphere_shading(mat4 mv){
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 static_cast<int>(lightStyle) );
 
+    glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
+                0 );
+
 }
 void setup_sphere_shading(mat4 mv, int manualLightStyle){
     color4 sphere_ambient_color(0.2f,0.2f,0.2f,1.0f);
@@ -293,7 +305,8 @@ void setup_sphere_shading(mat4 mv, int manualLightStyle){
 
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 manualLightStyle );
-
+    glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
+                0 );
 }
 
 
@@ -353,7 +366,8 @@ void setup_floor_shading(mat4 mv, int lightFlag){
 
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 lightFlag );
-
+    glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
+                static_cast<int>(groundTextureStyle) );
 }
 
 void setup_shadow_shading(mat4 mv){
@@ -398,6 +412,8 @@ void setup_shadow_shading(mat4 mv){
 
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 0 );
+    glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
+                0 );
 }
 
 void setup_axis_shading(mat4 mv,color4 color){
@@ -441,6 +457,8 @@ void setup_axis_shading(mat4 mv,color4 color){
 
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 0 );
+    glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
+                0 );
 }
 
 
@@ -460,7 +478,13 @@ void floor() {
     floor_points[3] = floorVertices[0];
     floor_points[4] = floorVertices[2];
     floor_points[5] = floorVertices[3];
-
+    //8*8 to 10*12 and follow the order of points
+    floor_texCoord[0] = vec2(0.0, 0.0);
+    floor_texCoord[1] = vec2(0.0, 1.5);
+    floor_texCoord[2] = vec2(1.25, 1.5);
+    floor_texCoord[3] = vec2(0.0, 0.0);
+    floor_texCoord[4] = vec2(1.25, 1.5);
+    floor_texCoord[5] = vec2(1.25, 0.0);
 }
 
 
@@ -524,15 +548,36 @@ void init() {
     program_light= InitShader("vshader53.glsl","fshader53.glsl");
     initTranslationVectors();
     initRotationVectors();
+
+
+    image_set_up();
+    /*--- Create and Initialize a texture object ---*/
+    glGenTextures(1, &texName);      // Generate texture obj name(s)
+
+    glActiveTexture( GL_TEXTURE0 );  // Set the active texture unit to be 0
+    glBindTexture(GL_TEXTURE_2D, texName); // Bind the texture to this texture unit
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ImageWidth, ImageHeight,
+                 0, GL_RGBA, GL_UNSIGNED_BYTE, Image);
+
+
+
+
     floor();
     // Create and initialize a vertex buffer object for floor, to be used in display()
     glGenBuffers(1, &floor_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, floor_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(floor_points) + sizeof(floor_normals),
+    glBufferData(GL_ARRAY_BUFFER, sizeof(floor_points) + sizeof(floor_normals)+sizeof(floor_texCoord),
                  NULL, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(floor_points), floor_points);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(floor_points), sizeof(floor_normals),
                     floor_normals);
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(floor_points) + sizeof(floor_normals),
+                    sizeof(floor_texCoord), floor_texCoord);
 
     glGenBuffers(1, &xaxis_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, xaxis_buffer);
@@ -622,7 +667,32 @@ void drawObjwithShader(GLuint buffer, int num_vertices, GLuint shader){
     glDisableVertexAttribArray(vNormal);
 }
 
+void drawObjwithShaderAndTexture(GLuint buffer, int num_vertices, GLuint shader){
+    //--- Activate the vertex buffer object to be drawn ---//
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
+    /*----- Set up vertex attribute arrays for each vertex attribute -----*/
+    GLuint vPosition = glGetAttribLocation(shader, "vPosition");
+    glEnableVertexAttribArray(vPosition);
+    glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0,
+                          BUFFER_OFFSET(0));
+
+    GLuint vNormal = glGetAttribLocation( shader, "vNormal" );
+    glEnableVertexAttribArray( vNormal );
+    glVertexAttribPointer( vNormal, 3, GL_FLOAT, GL_FALSE, 0,
+                           BUFFER_OFFSET(sizeof(point4) * num_vertices) );
+    glDrawArrays(GL_TRIANGLES, 0, num_vertices);
+
+    GLuint vTexCoord = glGetAttribLocation( shader, "vTexCoord" );
+    glEnableVertexAttribArray( vTexCoord );
+    glVertexAttribPointer( vTexCoord, 2, GL_FLOAT, GL_FALSE, 0,
+                           BUFFER_OFFSET((sizeof(point4) * num_vertices) + (sizeof(vec3) * num_vertices)) );
+
+    /*--- Disable each vertex attribute array being enabled ---*/
+    glDisableVertexAttribArray(vPosition);
+    glDisableVertexAttribArray(vNormal);
+    glDisableVertexAttribArray(vTexCoord);
+}
 void drawObjLinewithShader(GLuint buffer, int num_vertices, GLuint shader) {
     //--- Activate the vertex buffer object to be drawn ---//
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -657,6 +727,7 @@ void display(void) {
     model_view = glGetUniformLocation(program_light, "model_view");
     projection = glGetUniformLocation(program_light, "projection");
     setup_fog_effect();
+    setup_texture_parameters();
 /*---  Set up and pass on Projection matrix to the shader ---*/
     mat4 p = Perspective(fovy, aspect, zNear, zFar);
     glUniformMatrix4fv(projection, 1, GL_TRUE, p); // GL_TRUE: matrix is row-major
@@ -709,7 +780,7 @@ void display(void) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         setup_floor_shading(mv,static_cast<int>(lightStyle));
-        drawObjwithShader(floor_buffer, floor_NumVertices,program_light);  // draw the floor
+        drawObjwithShaderAndTexture(floor_buffer, floor_NumVertices,program_light);  // draw the floor
 
         if(isShadowBlending){
             glEnable(GL_BLEND);
@@ -747,7 +818,7 @@ void display(void) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         setup_floor_shading(mv,static_cast<int>(lightStyle));
-        drawObjwithShader(floor_buffer, floor_NumVertices,program_light);
+        drawObjwithShaderAndTexture(floor_buffer, floor_NumVertices,program_light);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 
@@ -767,7 +838,7 @@ void display(void) {
         glUniformMatrix3fv(glGetUniformLocation(program_light, "Normal_Matrix"),
                            1, GL_TRUE, normal_matrix );
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        drawObjwithShader(floor_buffer, floor_NumVertices, program_light);
+        drawObjwithShaderAndTexture(floor_buffer, floor_NumVertices, program_light);
 
 
     }
@@ -1051,6 +1122,20 @@ void myBlendingShadowMenu(int id){
     }
     glutPostRedisplay();
 }
+
+void myTextureGroundMenu(int id){
+    switch (id) {
+        case (1) : {
+            groundTextureStyle = TextureGround::No;
+            break;
+        }
+        case (2) : {
+            groundTextureStyle = TextureGround::Yes;
+            break;
+        }
+    }
+    glutPostRedisplay();
+}
 void myMenu(int id){
     switch (id) {
         case (1) :
@@ -1071,6 +1156,8 @@ void myMenu(int id){
     }
     glutPostRedisplay();
 }
+
+
 void initMenu(){
     int shadowMenuID = glutCreateMenu(myShadowMenu);
     glutSetMenuFont(shadowMenuID,GLUT_BITMAP_HELVETICA_18);
@@ -1103,6 +1190,12 @@ void initMenu(){
     glutSetMenuFont(shadowBlendingMenuID,GLUT_BITMAP_HELVETICA_18);
     glutAddMenuEntry(" No ", 1);
     glutAddMenuEntry(" Yes ", 2);
+
+    int groundTextureMenuID = glutCreateMenu(myTextureGroundMenu);
+    glutSetMenuFont(groundTextureMenuID,GLUT_BITMAP_HELVETICA_18);
+    glutAddMenuEntry(" No ", 1);
+    glutAddMenuEntry(" Yes ", 2);
+
     int menuID = glutCreateMenu(myMenu);
     glutSetMenuFont(menuID,GLUT_BITMAP_HELVETICA_18);
     glutAddMenuEntry(" Default View Point ",1);
@@ -1114,6 +1207,7 @@ void initMenu(){
     glutAddSubMenu(" Shading ", shadingMenuID);
     glutAddSubMenu(" Fog Options ", fogMenuID);
     glutAddSubMenu(" Blending Shadow ", shadowBlendingMenuID);
+    glutAddSubMenu(" Texture Mapped Ground ", groundTextureMenuID);
     glutAttachMenu(GLUT_LEFT_BUTTON);
 }
 int main(int argc, char **argv) {
