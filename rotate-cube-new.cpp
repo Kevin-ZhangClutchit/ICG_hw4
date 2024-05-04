@@ -1060,9 +1060,10 @@ void keyboard(unsigned char key, int x, int y) {
 
         case 'l': case 'L':
             if(latticeStyle!=LatticeMode::No){
-                latticeStyle=LatticeMode::Upright;
-            }else {
                 latticeStyle=LatticeMode::No;
+
+            }else {
+                latticeStyle=LatticeMode::Upright;
             }
             break;
 

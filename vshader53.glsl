@@ -15,6 +15,7 @@ in  vec2 vTexCoord;
 out vec4 color;
 out vec4 position;
 out vec2 texCoord;
+out vec2 latCoord;
 uniform vec4 DirectionalAmbientProduct, DirectionalDiffuseProduct, DirectionalSpecularProduct;
 uniform vec4 AmbientProduct, DiffuseProduct, SpecularProduct;
 uniform mat4 model_view;
@@ -72,7 +73,13 @@ void main()
          }
     }
 
-
+    if(latticeStyle==1){
+        latCoord.x = 0.5*(vPosition.x + 1.0);
+        latCoord.y = 0.5*(vPosition.y + 1.0);
+    }else if(latticeStyle==2){
+        latCoord.x = 0.3*(vPosition.x + vPosition.y + vPosition.z);
+        latCoord.y = 0.3*(vPosition.x - vPosition.y + vPosition.z);
+    }
 
 
     if (light_flag==0){

@@ -11,6 +11,7 @@ in vec4 position;
 out vec4 fColor;
 in float distance;
 in  vec2 texCoord;
+in  vec2 latCoord;
 // fog
 uniform vec4 fogColor;
 uniform int fogStyle;
@@ -28,7 +29,11 @@ void main()
     float op = color.w;
     float z = length(model_view * position);
     fColor = color;
-
+    if (latticeStyle!=0){
+        if ((fract(4*latCoord.x) < 0.35) && (fract(4*latCoord.y) < 0.35)) {
+                    discard;
+                }
+    }
     if (groundTextureFlag==1){
         textureColor = texture(texture_2D, texCoord);
         fColor *= textureColor;
