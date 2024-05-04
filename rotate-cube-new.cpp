@@ -1151,6 +1151,9 @@ void parseFile() {
 }
 void myShadowMenu(int id) {
     isShadow = (id==2);
+    if (isShadow){
+        sphereTextureStyle=TextureSphere::No;
+    }
     glutPostRedisplay();
 };
 
