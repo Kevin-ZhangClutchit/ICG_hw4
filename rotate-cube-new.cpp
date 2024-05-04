@@ -815,17 +815,7 @@ void display(void) {
 
 
 
-    //axis
-    mv = LookAt(eye, at, up);
-    setup_axis_shading(mv,xaxis_color);
-    glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-    drawObjLinewithShader(xaxis_buffer, 2, program_light);
-    setup_axis_shading(mv,yaxis_color);
-    glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-    drawObjLinewithShader(yaxis_buffer, 2, program_light);
-    setup_axis_shading(mv,zaxis_color);
-    glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
-    drawObjLinewithShader(zaxis_buffer, 2, program_light);
+
 
     if (isShadow && eye.y >= 0){
         mv = LookAt(eye, at, up);
@@ -904,7 +894,17 @@ void display(void) {
     }
 
 
-
+    //axis
+    mv = LookAt(eye, at, up);
+    setup_axis_shading(mv,xaxis_color);
+    glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+    drawObjLinewithShader(xaxis_buffer, 2, program_light);
+    setup_axis_shading(mv,yaxis_color);
+    glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+    drawObjLinewithShader(yaxis_buffer, 2, program_light);
+    setup_axis_shading(mv,zaxis_color);
+    glUniformMatrix4fv(model_view, 1, GL_TRUE, mv);
+    drawObjLinewithShader(zaxis_buffer, 2, program_light);
     //sphere
     if (isSolid){
         GLuint curSpherebuffer;

@@ -41,10 +41,40 @@ void main()
 {
     float cutoffAngle=20.0*3.1415926/180.0;
     position = vPosition;
+    vec4 texPosition;
+
+
+    // texture related
+    if(sphereTextureFrame==0){
+        texPosition = vPosition;
+    }else{
+        texPosition = model_view*vPosition;
+    }
 
     if (groundTextureFlag==1){
          texCoord = vTexCoord;
+    }else if(sphereTextureFlag==1){
+
+        if (sphereTextureDirection==0){
+            texCoord.x = 2.5 * texPosition.x;
+        }else{
+             texCoord.x = 1.5 * (texPosition.x + texPosition.y + texPosition.z);
+        }
+
+
+    }else if(sphereTextureFlag==2){
+         if (sphereTextureDirection==0){
+            texCoord.x = 0.5 * (texPosition.x+1);
+            texCoord.y = 0.5 * (texPosition.y+1);
+         }else{
+            texCoord.x = 0.3 * (texPosition.x + texPosition.y + texPosition.z);
+            texCoord.y = 0.3 * (texPosition.x - texPosition.y + texPosition.z);
+         }
     }
+
+
+
+
     if (light_flag==0){
         gl_Position = projection * model_view * vPosition;
         color = default_no_light_color;

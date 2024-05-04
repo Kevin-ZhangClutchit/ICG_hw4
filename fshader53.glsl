@@ -33,6 +33,19 @@ void main()
         fColor *= textureColor;
     }
 
+    if(sphereTextureFlag==1){
+        textureColor = texture(texture_1D, texCoord.x);
+        fColor *= textureColor;
+    }else if(sphereTextureFlag==2){
+        textureColor = texture(texture_2D, texCoord);
+        if (textureColor.x<0.2){
+        //sphere 1.0 0.84
+        //texture 0.0 150/255
+        textureColor=vec4(0.9, 0.1, 0.1, 1.0);
+        }
+         fColor *= textureColor;
+    }
+
 
 
 
