@@ -1246,6 +1246,9 @@ void myMenu(int id){
         case (3) :
         {
             isSolid=!isSolid;
+            if(isSolid==false){
+                sphereTextureStyle=TextureSphere::No;
+            }
             break;
         }
     }
