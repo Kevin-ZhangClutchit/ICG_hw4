@@ -18,6 +18,8 @@ uniform int groundTextureFlag;
 uniform float fogStart,fogEnd,fogDensity;
 uniform mat4 model_view;
 uniform sampler2D texture_2D;
+uniform sampler1D texture_1D;
+uniform int sphereTextureFlag;
 void main() 
 {
     float f;

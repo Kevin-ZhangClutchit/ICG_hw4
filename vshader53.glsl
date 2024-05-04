@@ -34,7 +34,8 @@ uniform vec4 default_no_light_color;
 uniform vec4 light_direction;
 uniform vec4 pos_light_direction;
 uniform int light_flag;
-
+uniform int sphereTextureFlag;
+uniform int sphereTextureDirection,sphereTextureFrame;
 
 void main()
 {

@@ -203,6 +203,8 @@ void setup_fog_effect(){
 }
 void setup_texture_parameters(){
     glUniform1i(glGetUniformLocation(program_light, "texture_2D"), 0);
+    glUniform1i(glGetUniformLocation(program_light, "texture_1D"), 1);
+
 }
 
 void setup_sphere_shading(mat4 mv){
@@ -260,9 +262,16 @@ void setup_sphere_shading(mat4 mv){
 
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 static_cast<int>(lightStyle) );
-
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFlag"),
+                static_cast<int>(sphereTextureStyle) );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureDirection"),
+                static_cast<int>(sphereTextureDirectionStyle) );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
+                static_cast<int>(sphereTextureFrameStyle) );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
                 0 );
+
+    setup_texture_parameters();
 
 }
 void setup_sphere_shading(mat4 mv, int manualLightStyle){
@@ -320,8 +329,15 @@ void setup_sphere_shading(mat4 mv, int manualLightStyle){
 
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 manualLightStyle );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFlag"),
+                static_cast<int>(sphereTextureStyle) );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureDirection"),
+                static_cast<int>(sphereTextureDirectionStyle) );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
+                static_cast<int>(sphereTextureFrameStyle) );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
                 0 );
+    setup_texture_parameters();
 }
 
 
@@ -383,7 +399,13 @@ void setup_floor_shading(mat4 mv, int lightFlag){
                 lightFlag );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
                 static_cast<int>(groundTextureStyle) );
-    glUniform1i(glGetUniformLocation(program_light, "texture_2D"), 0);
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFlag"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureDirection"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
+                0 );
+    setup_texture_parameters();
 }
 
 void setup_shadow_shading(mat4 mv){
@@ -430,6 +452,12 @@ void setup_shadow_shading(mat4 mv){
                 0 );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
                 0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFlag"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureDirection"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
+                0 );
 }
 
 void setup_axis_shading(mat4 mv,color4 color){
@@ -474,6 +502,12 @@ void setup_axis_shading(mat4 mv,color4 color){
     glUniform1i(glGetUniformLocation(program_light, "light_flag"),
                 0 );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFlag"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureDirection"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
                 0 );
 }
 
