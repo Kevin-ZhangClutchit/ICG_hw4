@@ -20,6 +20,7 @@ uniform mat4 model_view;
 uniform sampler2D texture_2D;
 uniform sampler1D texture_1D;
 uniform int sphereTextureFlag;
+uniform int latticeStyle;
 void main() 
 {
     float f;

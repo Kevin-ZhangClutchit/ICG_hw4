@@ -36,7 +36,7 @@ uniform vec4 pos_light_direction;
 uniform int light_flag;
 uniform int sphereTextureFlag;
 uniform int sphereTextureDirection,sphereTextureFrame;
-
+uniform int latticeStyle;
 void main()
 {
     float cutoffAngle=20.0*3.1415926/180.0;

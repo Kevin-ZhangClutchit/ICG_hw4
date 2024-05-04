@@ -83,6 +83,11 @@ enum class SphereTextureFrame: int{
     Object = 0,
     Eye = 1
 };
+enum class LatticeMode: int{
+    No = 0,
+    Upright = 1,
+    Tilted = 2
+};
 Shading shadeStyle = Shading::FlatShading;
 Light lightStyle = Light::NoLight;
 Fog fogStyle = Fog::NoFog;
@@ -91,6 +96,7 @@ TextureGround  groundTextureStyle = TextureGround::No;
 TextureSphere sphereTextureStyle = TextureSphere::No;
 SphereTextureDirection sphereTextureDirectionStyle = SphereTextureDirection::Vertical;
 SphereTextureFrame sphereTextureFrameStyle = SphereTextureFrame::Object;
+LatticeMode latticeStyle = LatticeMode::No;
 static GLuint texName;
 
 const int floor_NumVertices = 6; //(1 face)*(2 triangles/face)*(3 vertices/triangle)
@@ -270,7 +276,8 @@ void setup_sphere_shading(mat4 mv){
                 static_cast<int>(sphereTextureFrameStyle) );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
                 0 );
-
+    glUniform1i(glGetUniformLocation(program_light, "latticeStyle"),
+                static_cast<int>(latticeStyle) );
     setup_texture_parameters();
 
 }
@@ -337,6 +344,8 @@ void setup_sphere_shading(mat4 mv, int manualLightStyle){
                 static_cast<int>(sphereTextureFrameStyle) );
     glUniform1i(glGetUniformLocation(program_light, "groundTextureFlag"),
                 0 );
+    glUniform1i(glGetUniformLocation(program_light, "latticeStyle"),
+                static_cast<int>(latticeStyle) );
     setup_texture_parameters();
 }
 
@@ -405,6 +414,8 @@ void setup_floor_shading(mat4 mv, int lightFlag){
                 0 );
     glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
                 0 );
+    glUniform1i(glGetUniformLocation(program_light, "latticeStyle"),
+                0 );
     setup_texture_parameters();
 }
 
@@ -458,6 +469,8 @@ void setup_shadow_shading(mat4 mv){
                 0 );
     glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
                 0 );
+    glUniform1i(glGetUniformLocation(program_light, "latticeStyle"),
+                static_cast<int>(latticeStyle) );
 }
 
 void setup_axis_shading(mat4 mv,color4 color){
@@ -508,6 +521,8 @@ void setup_axis_shading(mat4 mv,color4 color){
     glUniform1i(glGetUniformLocation(program_light, "sphereTextureDirection"),
                 0 );
     glUniform1i(glGetUniformLocation(program_light, "sphereTextureFrame"),
+                0 );
+    glUniform1i(glGetUniformLocation(program_light, "latticeStyle"),
                 0 );
 }
 
@@ -1031,6 +1046,26 @@ void keyboard(unsigned char key, int x, int y) {
             sphereTextureFrameStyle=SphereTextureFrame::Eye;
             break;
 
+        case 'u': case 'U':
+            if(latticeStyle!=LatticeMode::No){
+                latticeStyle=LatticeMode::Upright;
+            }
+            break;
+
+        case 't': case 'T':
+            if(latticeStyle!=LatticeMode::No){
+                latticeStyle=LatticeMode::Tilted;
+            }
+            break;
+
+        case 'l': case 'L':
+            if(latticeStyle!=LatticeMode::No){
+                latticeStyle=LatticeMode::Upright;
+            }else {
+                latticeStyle=LatticeMode::No;
+            }
+            break;
+
         case ' ':  // reset to initial viewer/eye position
             eye = init_eye;
             break;
@@ -1246,7 +1281,7 @@ void myMenu(int id){
         case (3) :
         {
             isSolid=!isSolid;
-            if(isSolid==false){
+            if(!isSolid){
                 sphereTextureStyle=TextureSphere::No;
             }
             break;
